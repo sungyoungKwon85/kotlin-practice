@@ -407,7 +407,122 @@ configureGreetingFunction에서 month는 4이지만 반환한 별도의 month는
 #
 
 ## null 안전과 예외 
+자바는 구분하지 않으므로 컴파일 시점에 알려주지 못한다. 
+코틀린에서는 null을 가질 수 있다는 것을 명시해줘야 한다.
+```
+var sth = "kwon"
+sth = null // error!!
+```
+#
+물음표를 지정하면 null이 가능하다는 의미이다.
 
+`public fun readLine(): String?`
+```
+var sth = readLine().capitalize()
+println(sth)
+```
+이대로 실행하면 컴파일 에러가 난다. 
+readLine()은 null을 반환할 수가 있기 때문에 컴파일이 미리 막은 것이다.
+
+처리하는 방법은 여러가지가 있다. 
+```
+// 1-1
+var sth = readLine()?.capitalize()
+
+// 1-2
+var sth2 = readLine()?.let {
+    if (it.isNotBlank()) {
+        it.capitalize()
+    } else {
+        "something"
+    }
+}
+```
+let은 안전 호출 연산자 라고 표현한다.
+추가 작업을 수행할 수 있다. 
+#
+`var sth = readLine()!!.capitalize()`
+
+!!은 뭐가 오든 뒤에 것을 실행하라는 non-null 단언 연산자이다. 
+하지만 여기서는 NPE가 발생한다.
+
+이 단언 연산자는 컴파일러가 null 발생을 미리 알 수 없는 상황에서 쓰인다. 
+!!를 쓰기 전에 이미 null 검사를 한 경우가 그 예다.
+#
+전통적인 if문을 쓰는 방법은 생략한다.
+#
+null 복합 연산자를 사용할 수도 있다.
+null인 경우 지정해주는 것이다. 
+```
+var sth = readLine()
+val nco: String = sth ?: "something"
+```
+#
+let과 함께 null 복합 연산자를 써보겠다. : 이후에 할당하는 게 아니니 헷갈리지 말자. 
+```
+var sth = readLine()
+sth?.let {
+    sth = it.capitalize()
+} ?: println("sth is null")
+```
+#
+### 예외
+코틀린도 예외를 가지고 있다.
+
+흔히 발생하는 예외 중 IllegalStateException이 있다. 문자열을 같이 전달하여 출력할 수 있어 유용하다. 
+
+허나 이름만 봐서는 확실히 알기 어렵다. 
+여튼 사용해보자.
+```
+fun main() {
+    var sth: Int? = null
+    val is conidtion = (1..3).shuffled().last() == 3
+    if (condition) {
+        sth = 2
+    }
+
+    checkSth(sth)
+    sth = sth!!.plus(1)
+}
+
+fun checkSth(sth: Int?) {   // 파라미터에도 null 가능을 명시해야 함
+    sth ?: throw IllegalStateException("NPE...")
+}
+```
+여러번 돌리다보면 Exception이 발생할 것이다. 
+#
+커스텀 예외를 정의해보자
+```
+...
+class UnSatisfiedException() : IllegalStateException("NPE...")
+```
+여기서 : 은 상속 또는 구현을 뜻한다. 
+이걸 위에서 사용하면 되겠다. 
+#
+전제조건 함수를 사용할 수도 있다. 
+```
+fuc checkSth(sth: Int?) {
+    checkNotNull(sth, {"NPE..."})
+}
+```
+null이면 IllegalStateException이 발생할 것이다. 
+
+이 외에도 require, requireNotNull, error, assert가 있다. 
+#
+
+코틀린에서는 모든 예외가 unchecked 예외다. 즉 예외가 생길 수 있는 모든 코드를 try/catch로 처리하도록 강요하지 않는다는 뜻이다. 
+
+자바의 처리는 불편함이 많다. 
+처리를 전혀하지않고 넘어가는 경우도 꽤 많은데 이럴 경우 원인을 찾기가 매우 어려워 진다. 
+
+경험적으로 checked 예외는 문제를 해결하기보다는 더 많은 문제(코드 중복, 이해하기 어려운 에러복구 로직, 기록없는 예외 무시 등)를 야기하므로 현대 언어에서는 unchecked 예외를 지원하는 것 같다. 
+
+
+
+
+
+
+ 
 
 
   
