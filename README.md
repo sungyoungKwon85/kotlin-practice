@@ -181,6 +181,8 @@ printStatus(status = status,
             name = "kwon",
             auraColor = "NONE")
 ```   
+#
+
 ### Nothing 타입
 앞서의 Unit 타입처럼 반환하지 않는데 차이점이 있다.
  
@@ -216,15 +218,196 @@ fun doSomthing() {
 }
 ```
 여튼 테스트 코드를 더 쉽게 나타내기에 좋다. 뭐.. 굳이 안써도됨 
-
+#
 
 ## 익명 함수와 함수 타입 
+```
+// 코틀린 표준 라이브러리의 함수 중 하나
+    val numLetters = "Mississippi".count()
+    println(numLetters)
+
+    // 특정 문자 개수를 알고 싶다면?
+    val numLetters2 = "Mississippi".count { letter -> letter == 's'} // 괄호는 생략 가능
+//        "Mississippi".count ({ letter -> letter == 's'})
+    println(numLetters2)
+```
+#
+
+### 직접 익명함수 만들어보기
+```
+fun main() {
+    // 익명함수 정의하고 호출하기
+    println({
+        val currentYear = 2020
+        "Welcome to Seoul! in $currentYear"
+    }()) // ()를 사용해서 호출한거임
+
+    println("################################################")
+
+    // 익명함수도 타입을 가진다 = 함수타입
+    var greetingFunction: () -> String = {
+        val currentYear = 2020
+        "Welcome to Seoul! in $currentYear"
+    }
+    // 리턴 키워드가 없어도 String이 반환된다.
+    // 암시적 반환이라고 하는데 익명함수에서는 return 키워드 사용이 금지되어 있음(어떤 곳으로 복귀하는지 컴파일러가 알 수 없음)
+//    var greetingFunction2: () -> String = {
+//        val currentYear = 2020
+//        return "Welcom to Seoul! in $currentYear" // 에러남
+//    }
+
+    println(greetingFunction())
+
+
+    println("################################################")
+
+    // 인자 사용하기
+    val greetingFunction3: (String) -> String = {name ->
+        val currentYear = 2020
+        "Welcome to Seoul, $name! in $currentYear"
+    }
+
+    // it 키워드 사용하기 (다만 데이터가 무엇인지 알기 어려울 수 있으니 중첩된 익명함수에서는 매개변수 이름을 쓰자)
+    val greetingFunction4: (String) -> String = {
+        val currentYear = 2020
+        "Welcome to Seoul, $it! in $currentYear"
+    }
+    println(greetingFunction3("kkwon"))
+    println(greetingFunction4("kkwon"))
+
+    // 다중 인자받기
+    val greetingFunction5: (String, Int) -> String = { name, year ->
+        "Welcome to Seoul, $name! in $year"
+    }
+    println(greetingFunction5("kkwon", 2020))
+
+    // 타입추론을 이용한 생략
+    val greetingFunction6 = { name: String, year: Int ->
+        "Welcome to Seoul, $name! in $year"
+    }
+    println(greetingFunction6("kkwon", 2020))
+
+    println("################################################")
+
+    // 함수를 인자로 받는 함수
+    runSimulation("kwon", greetingFunction6)
+
+    // 매개변수인 함수를 구현하면서 전달해도됨
+    runSimulation("kwon") {
+        name, year ->
+        "Welcome to Seoul, $name! in $year"
+    }
+
+    println("################################################")
+
+
+}
+
+
+// 함수를 인자로 받는 함수
+fun runSimulation(name: String, greetingFunction: (String, Int) -> String) {
+    val random = (1990..2020).shuffled().last()
+    println(greetingFunction(name, random))
+}
+```
+#
+
+람다를 정의하면 JVM에서 객체로 생성이 됨
+
+또한 JVM은 람다를 사용하는 모든 변수의 메모리 할당을 수행하므로 메모리가 많이 사용된다
+
+inline을 사용하면 최적화를 할 수 있다
+
+```
+inline fun runSimulation(name: String, greetingFunction: (String, Int) -> String) {
+    val random = (1990..2020).shuffled().last()
+    println(greetingFunction(name, random))
+} 
+```
+inline 키워드를 추가하면 컴파일러가 바이트코드 생성시 람다 코드를 함수 안으로 넣어버린다. 
+
+람다를 인자로 받는 재귀함수는 코드가 무수히 많아질 수 있으니 컴파일러가 인라인 처리 하지 않고 루프 형태로 변경해버린다. 
+#
+
+함수 참조를 이용해 호출도 가능하다
+```
+    ...
+    // 함수 참조 사용하기
+    runSimulation2(
+        "kwon",
+        ::printDays, // 요기서 지정함
+        greetingFunction6
+    )
+}
+
+// 함수 참조 사용하기
+inline fun runSimulation2(name: String,
+                          dayPrinter: (Int) -> Unit,
+                          greetingFunction: (String, Int) -> String) {
+    val random = (1990..2020).shuffled().last()
+    dayPrinter(random)
+    println(greetingFunction(name, random))
+}
+
+// 함수 참조 사용하기
+fun printDays(year: Int) {
+    val dayPerYear = 365
+    println("All days: ${dayPerYear * year}")
+}
+```
+#
+
+반환 타입으로 함수 타입을 사용할 수도 있다. 
+```
+    ...
+    // 반환타입으로 함수 사용하기
+    runSimulation3()
+
+}
+
+// 반환타입으로 함수 사용하기
+fun runSimulation3() {
+   val greetingFunction = configureGreetingFunction()
+    println(greetingFunction("kwon"))
+}
+
+// 반환타입으로 함수 사용하기
+fun configureGreetingFunction(): (String) -> String {
+    val type = "Lunar"
+    var month = 4
+    return { name: String ->
+        val year = 2020
+        month+= 1
+        "Mr.$name, Date: $year $month($type)"
+    }
+}
+```
+configureGreetingFunction에 선언된 지역변수인 type 및 month가 반환하는 람다에서 사용되었다. 
+
+코틀린의 람다는 클로저이다. 
+
+다른 함수에 포함된 함수에서 자신을 포함하는 함수의 매개변수와 변수를 사용할 수 있는 것을 클로저라고 한다. 
+
+예제에서 month는 var로 선언했는데 반환하는 함수에서는 별도의 객체로 저장되어 사용된다.
+예를 들어보자. 
+```
+// 클로저 변수 스코프 확인
+fun runSimulation4() {
+    val greetingFunction = configureGreetingFunction()
+    println(greetingFunction("kwon"))
+    println(greetingFunction("kwon"))
+}
+
+...
+
+Mr.kwon, Date: 2020 5(Lunar)
+Mr.kwon, Date: 2020 6(Lunar)
+``` 
+configureGreetingFunction에서 month는 4이지만 반환한 별도의 month는 따로 만들어져서 점점 증가했다. 
+#
+
+## null 안전과 예외 
 
 
 
-
-
-
-
-
-
+  
