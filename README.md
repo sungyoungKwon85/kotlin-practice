@@ -516,6 +516,87 @@ null이면 IllegalStateException이 발생할 것이다.
 처리를 전혀하지않고 넘어가는 경우도 꽤 많은데 이럴 경우 원인을 찾기가 매우 어려워 진다. 
 
 경험적으로 checked 예외는 문제를 해결하기보다는 더 많은 문제(코드 중복, 이해하기 어려운 에러복구 로직, 기록없는 예외 무시 등)를 야기하므로 현대 언어에서는 unchecked 예외를 지원하는 것 같다. 
+#
+
+## 문자열
+```
+const val TAVERN_NAME = "Taernyl's Folly"
+fun main() {
+    placeOrder("shandy,Dragon's Breath,5.91")
+}
+
+fun placeOrder(s: String) {
+    val indexOfApostrophe = TAVERN_NAME.indexOf('\'')
+    val tavernMaster = TAVERN_NAME.substring(0 until indexOfApostrophe)
+    println("Order to $tavernMaster")
+
+    val data = s.split(',')
+    val type = data[0]
+    val name = data[1]
+    val price = data[2]
+    val message = "Purchase $name ($type) with $price"
+    println(message)
+
+    // 해체선언(destructuring declaration) 사용하기
+    val (type2, name2, price2) = s.split(',')
+    val message2 = "Purchase $name2 ($type2) with $price2"
+    println(message2)
+    
+    val phrase = "와, $name 진짜 좋구나!"
+    println("ohoh ${toDragonSpeak(phrase)}")
+}
+    
+private fun toDragonSpeak(phrase: String) =
+    phrase.replace(Regex("[aeiou]")) {
+        when (it.value) {
+            "a" -> "4"
+            "e" -> "3"
+            "i" -> "1"
+            "o" -> "0"
+            "u" -> "|_|"
+            else -> it.value
+        }
+    }
+
+```
+#
+```
+private fun placeOrder(s: String) {
+    ...
+    varl phrase = if (name == "Dragon's Breath") {
+        "${toDragonSpeak("와, $name 진짜 좋구나!")}"
+    } else {
+        "Tahnks, $name"
+    }
+}
+
+```
+여기서 동등 비교 연산자인 ==를 사용했다.
+문자열에서 이 연산자를 사용하면 문자열의 각 문자를 같은 순서로 하나씩 비교한다. 
+
+또 다른 방법으로는 참조 동등(referential equality) 비교가 있다. 
+참조를 똑같이 갖는지 검사한다. 이떄는 === 를 사용한다. 
+
+**자바에서는 == 연산자가 참조를 비교하므로 코틀린과 다르다.
+자바에서 문자열 값을 비교할때는 equals 메서드를 사용한다.**
+#
+
+하나씩 다루기
+```
+"Dragon's Breath".forEach {
+    println("$it\n")
+}
+```
+#
+
+## 숫자
+
+
+
+
+
+  
+
 
 
 
