@@ -706,6 +706,123 @@ val fileContents = File("myfile.txt")
 #
 
 ## List와 Set
+`val patronList: List<String> = listOf("El","Mo","So")`
+
+`val patronList = listOf("El","Mo","So")` -> 타입추론 가능 
+
+`val patronList: List<String> = listOf("El","Mo","So", 1)` -> 에러
+#
+사용예제
+```
+list.first()
+list.last()
+list[1]
+if (list.contains("El")) ...
+if (list.containsAll(listOf("EL", "Mo"))) ...
+```
+list[1] 등은 인덱스가 넘을 수 있으므로 아래처럼 하는게 좋다.
+```
+list.getOrElse(4) {"default"}
+list.getOrNull(4) ?: "default"
+```
+#
+### List 요소 변경하기
+?가 없으면 읽기 전용이다. 따라서 mutableListOf를 사용한다. 
+
+```
+val list = mutableListOf("El", "Mo", "So")
+fun main() {
+    list.remove("El")
+    list.add("Al")
+}
+```
+새로운 요소는 List 제일 끝에 추가되는데 특정 위치에 넣을 수도 있다.
+ 
+`list.add(0, "Al")`
+
+toList와 toMutableList를 사용해서 상호 변경할 수 있다. 
+```
+val list = mutableListOf("A", "B", "C")
+val readOnlyList = list.toList()
+```
+#
+add 등을 변경자 함수 (mutator function) 라고한다. 
+* add
+* addAll
+* +=
+  * ex) list += listOf("D","E")
+* -=
+* clear
+* removeIf
+#
+List는 iteration기능이 있다.
+
+Set, Map, IntRange 등도 가능하다.   
+```
+for (element in list) {
+    ...
+}
+
+list.forEach { e ->
+    ...
+}
+
+// 인덱스 쓰고 싶으면
+list.forEachIndexed { index, e -> 
+    ...
+}
+```
+### Set
+```
+val planets = setOf("Mercury", "Venus", "Earth")
+
+val planets2 = mutableSetOf("Mercury", "Venus", "Earth")
+```
+#
+toSet() 및 toList() 를 활용하면 컬렉션 변환을 쉽게 할 수 있다.
+
+`val list = listOf("A","B","C","C","D").toSet().toList()`
+
+List에는 distinct() 함수가 있는데 얘가 내부적으로 toSet()과 toList()를 호출한 것이다. 
+#
+### 배열타입
+코틀린에서는 기본타입이 아닌 Array를 지원한다. 
+물론 앞에서 설명했듯이 바이트코드로 생성될 때는 기본 타입으로 컴파일 된다.
+
+`val ages: IntArray = intArrayOf(1,2,3,4,5)`
+
+코틀린 변환 함수들을 사용하면 자바의 기본 배열 타입으로 변환할 수 있다. 
+
+```
+val ages: List<Int> = listOf(1,2,3,4,5)
+ages.toIntArray()
+``` 
+* IntArray
+* DoubleArray
+* BooleanArray
+...
+#
+```
+val x = listOf(mutableListOf(1,2,3))
+val y = listOf(mutableListOf(1,2,3))
+x[0].add(4)
+x == y // flase
+```
+변경불가한 list의 요소로 변경가능한 list를 가지만 위와 같이 변경이 된다. 
+```
+var list: List<Int> = listOf(1,2,3)
+(list as MutableList) list[2] = 1000
+```
+as 키워드를 사용하면 또한 변경 가능하다. 
+
+불변성을 강요하지는 않는다. 우리가 적절히 사용할 수 있을 것. 
+#
+## Map
+
+
+
+
+
 
 
 
