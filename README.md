@@ -590,6 +590,31 @@ private fun placeOrder(s: String) {
 #
 
 ## 숫자
+문잦열을 숫자 타입으로 반환하기
+```
+toFloat
+toDouble
+toDoubleOrNull
+toIntOrNull
+toLong
+toBigDecimal
+```
+아래처럼 활용하면 된다. 
+
+`val gold: Int = "5.91".toIntOrNull() ?: 0`
+#
+2자리까지만 나타내기
+
+`println("${%.2f.format(doubleVariable)}")`
+#
+Double을 Int로
+
+`val intVal = doubleVal.toInt()` -> 소수점 이하값 절삭
+
+`val intVal = (doubleVal % 1 * 100).roundToInt()` -> 소수점 남기기 
+
+
+
 
 
 
