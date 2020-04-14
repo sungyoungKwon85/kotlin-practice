@@ -612,8 +612,100 @@ Double을 Int로
 `val intVal = doubleVal.toInt()` -> 소수점 이하값 절삭
 
 `val intVal = (doubleVal % 1 * 100).roundToInt()` -> 소수점 남기기 
+#
 
+## 표준 함수
+코틀린 라이브러리에 있는 표준 함수는 람다를 인자로 받아 동작한다.
+apply, let, run, with, also, takeIf를 알아본다. 
 
+### apply
+```
+var menuFile = File("menu-file.txt")
+menuFile.setReadable(true)
+menuFile.setWritable(true)
+menuFile.setExecutable(false)
+
+val menuFile = File("menu-file.txt").apply {
+    setReadable(true)
+    setWritable(true)
+    setExecutable(false)
+}
+```
+수신자 객체 반환
+### let
+```
+// ex1
+val squared = listOf(1,2,3).first().let {
+    it * it
+}
+
+// ex2
+fun formatGreeting(name: String?) : String {
+    return name?.let {
+        "$it, welcome"
+    } ?: "nobody welcome"
+}
+```
+결과를 반환
+### run
+```
+// ex1
+var menuFile = File("menu-file.txt")
+val servesDragonsBreath = menuFile.run {
+    readText().contains("Dragon's Breath")
+}
+
+// ex2, 함수 참조를 실행할 떄 사용 
+fun nameIsLong(name: String) = name.lenth >= 20
+"Madrigal".run(::nameIsLong) // return false
+"Polarcubis, Supreme Master of NyetHack".run(::nameIsLong)" // return true
+
+// ex3
+fun playerCreateMessage(nameTooLong: Boolean): String {
+    return if (nameTooLong) {
+        "too long.."
+    } else {
+        "Welcome!"
+    }   
+}
+
+"Polarcubis, Supreme Master of NyetHack"
+    .run(::nameIsLong)
+    .run(::playerCreateMessage)
+    .run(::println)
+
+``` 
+결과를 반환
+### with
+```
+val nameTooLong = with("Polarcubis, Supreme Master of NyetHack") {
+    length >= 20
+}
+```
+run이 나음
+### also
+```
+var fileContents: List<String>
+File("file.txt")
+    .also {
+        print(it.name)
+    }.also {
+        fileContents = it.readLines()
+    }
+```
+let과 비슷한데 수신자 객체를 반환한다. 
+### takeIf
+```
+val fileContents = File("myfile.txt")
+    .takeIf { it.canRead() && it.canWrite() }
+    ?. readText()
+```
+람다에 제공된 조건식(predicate)을 실행 한 후 true면 수신자 객체, false면 null을 반환한다. 
+
+그 외 takeUnless도 있다. (takeIf와 반대임)
+#
+
+## List와 Set
 
 
 
