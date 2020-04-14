@@ -818,6 +818,34 @@ as 키워드를 사용하면 또한 변경 가능하다.
 불변성을 강요하지는 않는다. 우리가 적절히 사용할 수 있을 것. 
 #
 ## Map
+mapOf, mutableMapOf
+
+```
+val mapEx = mapOf("A" to 10.5, "B" to 8.0)
+
+val mapEx2 = mapOf(Pair("A", 10.5), Pair("B", 8.0))
+
+mapEx += "C" to 6.0
+
+val aVal = mapExp["A"]
+
+val dVal = mapExp.getOrElse("D") { 1.1 }
+
+val eVal = mapExp.getOrDefault("E", 0.0)
+
+val mutableMap = mutableMapOf<String, Double>()
+mapEx.forEach {
+    mutableMap[it] = 6.0
+}
+
+mutableMap["A"] = 11.0 - 5.5
+
+mapEx.forEach { k, v ->
+    println("$k, value: ${"%.2f".format(v)}") 
+}
+```    
+
+
 
 
 
