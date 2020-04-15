@@ -579,7 +579,91 @@ val active = StudentStatus.Active("Kotlin")
 ```
 NotEnrolled랑 Graduated는 하나만 필요하므로 object로 선언했고, Active는 학생에 따라 여러 과정이 있을 수 있어 클래스로 선언했다. 
 #
-## 인터페이스와 추상 클래스
+## 인터스페이스와 추상 클래스
+### 인터페이
+```
+interface Fightable {
+    var healthPoints: Int
+    val diceCount: Int
+    val diceSides: Int
+    val damageRoll: Int
+        get() = (0 until diceCount).map {
+            Random().nextInt(diceSides) + 1
+        }.sum()
+    fun attack(opponent: Fightable): Int
+}
+```
+속성은 초기화 코드가 없고, 함수는 몸체가 없다. 
+기본 구현 getter도 추가했다. 
+```
+class Player(_name: String,
+         override var healthPoints: Int = 100,
+         val isBlessed: Boolean,
+         private val isImmortal: Boolean) : Fightable {
+         ...
+    override val diceCount = 3
+    
+    override val diceSides = 6
+
+    override fun attack(opponent: Fightable): Int {
+        val damageDealt = if (isBlessed) {
+            damageRoll * 2
+        } else {
+            damageRoll
+        }
+        opponent.healthPoints -= damageDealt
+        return damageDealt
+    }
+}
+```
+Fightable을 구현하고 healthPoints는 기본 생성자에서 override 받았다. 
+
+참고로 인터페이스는 `open` 키워드가 필요없다.
+
+인터페이스는 how가 아닌 what을 구현하는데 초점을 맞춘다.   
+
+인터페이스를 구현하는 클래스에서 how를 다룬다. 
+#
+### 추상 클래스
+인터페이스와 비슷하게 헤더만 정의된 추상 함수와 속성을 갖는다.
+
+하지만 몸체가 있는 일반 함수도 가질 수 있다. (하지만 인스턴스 생성은 못함, 서브 클래스에서 상속 받아 구현하도록 하는것이 목적이므로)
+```
+abstract class Monster(val name: String,
+                       val description: String,
+                       override var healthPoints: Int) : Fightable {
+    override fun attack(opponent: Fightable): Int {
+        val damageDealt = damageRoll
+        opponent.healthPoints -= damageDealt
+        return damageDealt
+    }
+}
+
+class Goblin(name: String = "Goblin",
+             description: String = "추하게 생긴 고블린",
+             healthPoints: Int = 30) : Monster(name, description, healthPoints) {
+    override val diceCount = 2
+    override val diceSides = 8
+}
+```
+Fightable 인터페이스를 구현하길 바라는 추상 클래스 Monster와 그 서브 클래스인 Goblin이다. 
+
+추상클래스에서는 인터페이스의 것들을 모두 구현할 필요가 없다. 서브 클래스가 못다한 구현을 해줘야 한다. 
+#
+인터페이스와 추상 클래스의 차이는 무엇인가?
+
+인터페이스는 생성자를 지정할 수 없다. 
+
+일반 클래스들은 하나의 추상 클래스만 슈퍼 클래스로 가진다. 하지만 인터페이스는 여러 개를 구현할 수 있다. 
+
+즉, *개념적으로 상속 관계가 없으면서 공통적인 속성이나 행동을 갖는다면 인터페이스를*.
+
+*상속 관계가 있으면서 인스턴스 생성이 필요 없는 슈퍼 클래스가 필요하면 추상 클래스가* 적합하다.
+
+단 인스턴스 생성이 필요한 슈퍼 클래스라면 추상 클래스가 아닌 일반 클래스를 쓰면 된다. 
+#
+## 제네릭
+
 
 
 
