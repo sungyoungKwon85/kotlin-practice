@@ -391,6 +391,208 @@ Any 는 Any? 의 서브 타입이다.
 #
 
 ## 객체
+nested class, data class, enum class 등을 알아본다. 
+#
+singleton 객체가 필요할 떄가 있는데 `object` 키워드를 사용하면 된다. 
+
+방법은 3가지가 있다. 
+
+* 객체 선언 (object declaration)
+* 객체 표현식 (object expression)
+* 동반 객체(companion object)
+#
+### 객체 선언
+```
+object Game {
+    init {
+        println("방문을 환영합니다.")   
+    }
+
+    fun play() {
+        while (true) {
+            // TODO
+        }
+    }
+}
+
+fun main() {
+    Game.play()
+}
+```
+#    
+### 객체 표현식
+대개의 경우는 class 키워드를 사용해서 이름이 있는 클래스를 별도의 파일에 정의한다. 
+
+기존 클래스의 서브 클래스를 이름 없이 정의한 후 바로 인스턴스를 생성해서 사용하면 편리할 때가 있다. (anonymous class)
+```
+val abandonedTownSquare = object : TownSquare() {
+    override fun load() = "No one here..."
+}
+```
+TownSquare의 서브 클래스를 객체 표현식을 통해 익명 클래스로 만든 것이다.
+
+이 인스턴스는 위의 코드가 실행될 때 생성과 초기화 되며 val에 저장했으므로 싱글톤 객체가 된다. 
+물론 abandonedTownSquare 변수가 존재하는 동안만이다.
+#
+### 동반 객체
+클래스 내부에 정의해서 사용한다. 
+
+`object` 키워드 앞에 `companion` 키워드를 추가하면 된다. 
+
+```
+class PremadeWorldMap {
+    ...
+    companion object {
+        private const val MAPS_FILEPATH = "nyethack.maps"
+
+        fun load() = File(MAPS_FILEPATH).readBytes()
+    }
+}
+``` 
+PremadeWorldMap은 동반 객체를 가지고 있다. 
+
+PremadeWorldMap의 인스턴스 생성 없이 load 함수를 호출할 수 있다. 
+```
+PremadeWorldMap.load()
+```
+#
+### 중첩 클래스
+클래스 내부에 정의되는 모든 클래스가 이름이 없진 않다. nested 클래스에도 class 키워드를 사용해 이름을 넣을 수 있다. 
+```
+object Game {
+...
+    fun play() {
+        while (true) {
+            ...
+            print("> 명령을 입력하세요: ")
+            println(GameInput(readLine()).processCommand())
+        }
+    }
+
+    private class GameInput(arg: String?) {
+        private val input = arg ?: ""
+        val command = input.split(" ")[0]
+        val argument = input.split(" ").getOrElse(1, { "" })
+    
+        fun processCommand() = when (command.toLowerCase()) {
+            "move" -> move(argument)
+            else -> commandNotFound()
+        }
+    
+        private fun commandNotFound() = "적합하지 않은 명령입니다!"
+    }
+}
+```
+외곽 클래스의 인스턴스가 생성되어야 사용할 수 있다. 
+#
+### 데이터 클래스
+데이터를 저장하기 위해 특별히 설계된 클래스이다. 
+강력한 데이터 처리 기능을 갖고 있다. 
+
+`data` 키워드를 class 앞에 추가하면 된다. (data class는 슈퍼 클래스가 될 수 없다) 
+```
+data class Coordinate(val x: Int, val y: Int) {
+    val isInBounds = x >= 0 && y >= 0
+}
+```
+앞서 모든 클래스는 Any 클래스로부터 상속 받는다고 했다. 그리고 Any는 `toString, equals, hashCode` 함수가 있다. 
+
+data class를 정의하면 코틀린 컴파일러가 이 함수들을 자동으로 생성해준다. `copy` 함수도 해준다.
+
+toString은 이쁘게 출력하게 해주고, equals는 속성값을 비교하도록 구현해주며, copy는 속성과 값만 인자로 전달하여 복사하게 해준다. 
+#
+### enum 클래스
+```
+enum class Direction(private val coordinate: Coordinate) {
+    NORTH(Coordinate(0, -1)),
+    EAST(Coordinate(1, 0)),
+    SOUTH(Coordinate(0, 1)),
+    WEST(Coordinate(-1, 0)); // 제일 끝에 세미콜론을 추가한다
+    fun updateCoordinate(playerCoordinate: Coordinate) =
+        coordinate + playerCoordinate
+}
+```
+#
+### 연산자 오버로딩
+
+`a+b`를 코틀린 컴파일러는 `a.plus(b)`로 실행하도록 바이트 코드를 생성한다. 
+다른것들도 마찬가지다. 
+
+Int가 아닌 다른 타입, 예를 들면 Coordinate를 + 연산자를 이용해보도록 하자. 
+```
+data class Coordinate(val x: Int, val y: Int) {
+    val isInBounds = x >= 0 && y >= 0
+
+    operator fun plus(other: Coordinate) = Coordinate(x + other.x, y + other.y)
+}
+```
+`operator` 키워드를 사용하면 된다. 
+* plus // +
+* plusAssign // +=
+* equals // ==
+* compareTo // >
+* get // []
+* rangeTo // ..
+* contains // in
+#
+### ADT (Algebraic data type, 데이적 데이터 타입)
+지정된 타입과 연관될 수 있는 서브 타입들의 폐집합을 나타낸다. enum도 ADT의 간단한 형태다. 
+
+```
+enum class StudentStatus {
+    NOT_ENROLLED,
+    ACTIVE,
+    GRADUATED
+}
+
+class Student(var status: StudentStatus)
+
+fun main() {
+    val student = Student(StudentStatus.NOT_ENROLLED)
+}
+
+fun studentMessage(status: StudentStatus): String {
+    return when (status) {
+        StudentStatus.NOT_ENROLLED -> "Please choose a course"
+    }
+}
+``` 
+위에서 NOT_ENROLLED만 처리하게 되면 컴파일 에러가 난다. 나머지를 처리안했기 때문이다. 
+
+각 항목 나름의 더 복잡한 처리가 필요한 경우는 각 항목을 클래스로 정의해서 `sealed` 클래스로 묶어서 사용할 수 있다.
+```
+enum class StudentStatus {
+    NOT_ENROLLED,
+    ACTIVE,
+    GRADUATED;
+    var courseId: String?= null // ACTIVE에서만 사용되는 속성...
+}
+``` 
+```
+sealed class StudentStatus {
+    object NotEnrolled : StudentStatus()
+    class Active(val courseId: String) : StudentStatus()
+    object Graduated : StudentStatus()
+}
+...
+val active = StudentStatus.Active("Kotlin")
+```
+NotEnrolled랑 Graduated는 하나만 필요하므로 object로 선언했고, Active는 학생에 따라 여러 과정이 있을 수 있어 클래스로 선언했다. 
+#
+## 인터페이스와 추상 클래스
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
