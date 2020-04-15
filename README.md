@@ -1,5 +1,6 @@
 # kotlin-practice
 빅 너드 랜치의 코틀린 프로그래밍 책을 보며 실습함.
+https://github.com/Jpub/BNR_Kotlin
 #
 
 
