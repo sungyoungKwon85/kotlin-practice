@@ -822,7 +822,21 @@ fun main(args: Array<String>) {
     nullableString printWithDefault "기본 문자열"
 }
 ```
+#
+## Functional programming
+#
+## With Java
+@nullable
 
+@NotNull
+
+@JvmOverloads
+
+@JvmField
+
+@Throws
+
+등을 잘 파악하고 있어야 상호 운용을 할 수 있다  
 
 
 
