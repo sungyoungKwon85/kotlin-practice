@@ -663,6 +663,145 @@ Fightable 인터페이스를 구현하길 바라는 추상 클래스 Monster와 
 단 인스턴스 생성이 필요한 슈퍼 클래스라면 추상 클래스가 아닌 일반 클래스를 쓰면 된다. 
 #
 ## 제네릭
+```
+class LootBox<T : Loot>(vararg item: T) {
+    var open = false
+    private var loot: Array<out T> = item
+
+    operator fun get(index: Int): T? = loot[index].takeIf { open }
+
+    fun fetch(item: Int): T? {
+        return loot[item].takeIf { open }
+    }
+
+    fun <R> fetch(item: Int, lootModFunction: (T) -> R): R? {
+        return lootModFunction(loot[item]).takeIf { open }
+    }
+}
+
+open class Loot(val value: Int)
+
+class Fedora(val name: String, value: Int) : Loot(value)
+
+class Coin(value: Int) : Loot(value)
+
+fun main(args: Array<String>) {
+    val lootBoxOne: LootBox<Fedora> = LootBox(Fedora("평범한 중절모", 15), // 제일 끝에 쉼표 추가
+                                        Fedora("눈부신 자주색 중절모", 25))
+    val lootBoxTwo: LootBox<Coin> = LootBox(Coin(15))
+
+    lootBoxOne.open = true
+
+    lootBoxOne.fetch(1)?.run {
+        println("$name 를 LootBox에서 꺼냈습니다!")
+    }
+
+    val coin = lootBoxOne.fetch(0) {
+        Coin(it.value * 3)
+    }
+    coin?.let { println(it.value) }
+
+    val fedora = lootBoxOne[1]
+    fedora?.let { println(it.name) }
+}
+```
+`val coint = lootBoxOne.fetch` 함수를 잘 살펴보자. 
+
+lootModFunction 이라는 함수를 매개변수의 인자로 받는다. 
+
+그리고 lootModFunction은 T 타입의 인자를 받아서 R 타입으로 반환해준다. 
+
+`(T) -> R` 이것을 함수 타입(function type) 이라고 한다.
+
+lootBoxOne은 Fedora 타입의 인스턴스를 참조하지만 반환 타입이 Coin이 된다.
+
+#
+표준화된 명칭
+* E: Entity
+* K: Key
+* V: Value
+* N: Number
+* T: Type
+* R: Return
+#
+`operator fun get(...` 을 보자. 
+
+인덱스 연산자인 []를 사용하고자 oprator 를 구현했다. 
+#
+LootBox 인스턴스에 여러개의 Loot 인스턴스를 저장하려면?
+
+`vararg` 키워드를 사용하면 된다. 
+
+`out` 키워드는 T 타입을 포함해서 서브 타입도 인자가 될 수 있다는 것을 뜻한다. 
+#
+```
+class Barrel<T>(var item: T)
+
+fun main() {
+    var fedoraBarrel: Barrel<Fedora> = Barrel(Fedora("중절모", 15))
+    var lootBarrel: Barrel<Loot> = Barrel(Coin(15))
+
+    lootBarrel = fedoraBarrel
+}
+```
+이 경우는 에러가 난다. 
+
+Loot 타입이므로 그 서브인 Fedora가 될 것 같은데 안된다. 
+
+```
+var loot: Loot = Fedora("중절모", 15)
+```
+이건 가능하다. 
+
+Law 타입으로 했기 때문이다. 
+
+lootBarrel의 타입은 Barrel<Loot>이고 fedoraBarrel 타입은 Barrel<Fedora> 이다. 
+
+따라서 Law 타입이 아니기 때문에 둘은 서로 다른 타입으로 간주된다. 
+
+즉, 제네릭 클래스의 인스턴스는 원시 타입과 제네릭 타입이 결합된 것이 자신의 타입이 되므로 슈퍼-서브 관계가 있다 하더라도 컴파일러가 인식하지 못한다. 
+
+따라서 이 문제를 해결하기 위한 키워드가 `in/out` 이다.
+
+```
+class Barrel<out T>(val item: T)
+```
+요렇게 변경하면 컴파일러가 에러로 잡아주지 않는다. 
+```
+fun main() {
+    var fedoraBarrel: Barrel<Fedora> = Barrel(Fedora("중절모", 15))
+    var lootBarrel: Barrel<Loot> = Barrel(Coin(15))
+
+    lootBarrel = fedoraBarrel // OK!
+    val myFedora: Fedora = lootBarrel.item // ERROR!
+}
+```
+아래줄은 에러가 난다. 왜 그럴까? Barrel 클래스의 타입 매개 변수에 `out`을 지정했기 때문이다.
+
+이 키워드를 지정하면 컴파일러가 슈퍼-서브 관계를 고려해준다. (타입이 Fedora로 바뀐게 아님)
+
+`val` 이므로 읽기만 가능해 타입이 변경되지 않으므로 안전하기 때문이다.  
+
+`in` 키워드는 `out`과 정반대이다. 
+#
+```
+val list = listOf(1,2)
+if (list is List<String>) {
+    println("List<String>!!)
+}
+```
+이 코드는 에러가 난다. JVM 으로 생성될 때는 제네릭 타입은 소거되므로 정확한 검사를 할 수 없기 때문이다. 
+
+이런 문제를 해결해주기 위해 `inline`과 `reified` 키워드를 사용한다.
+```
+inline fun <reified T> myFunc(backupLoot: () -> T): T {
+    ...
+}
+``` 
+#
+## 확장
+
+
 
 
 
