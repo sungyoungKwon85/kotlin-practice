@@ -205,10 +205,126 @@ fun printWeaponName() {
 it은 코드로 변경할 수 없기 때문에 컴파일러가 에러를 주지 않는다.
 #
 
-### 초기화 
- 
+## 초기화 
+### 생성자
+위 글에서는 속성들을 바로 초기화 했었으나 인스턴스 생성시 값을 변경할 방법이 없다. 
 
-  
+primary constructor가 필요하다. 
+```
+class Player {
+    var name = "madrigal"
+        get() = field.capitalize()
+        private set(value) {
+            field = value.trim()
+        }
+
+    var healthPoints = 89
+    val isBlessed = true
+    private val isImmortal = false
+...
+
+
+
+class Player(_name: String,
+             var healthPoints: Int = 100,
+             val isBlessed: Boolean,
+             private val isImmortal: Boolean) {
+    var name = _name
+        get() = field.capitalize()
+        private set(value) {
+            field = value.trim()
+        }
+```
+보조생성자도 만들 수 있다. 
+```
+    constructor(name: String) : this(name,
+        isBlessed = true,
+        isImmortal = false) {
+        if (name.toLowerCase() == "kar") healthPoints = 40
+    }
+``` 
+기본인자가 많아지면 혼란스러우니 지명인자(named argument)를 사용할 수 있다. 
+```
+val player = Player(name = "kwon",
+               healthPoints = 100,
+               isBleassd = true,
+               isImmortal = false)
+```
+### initializer block
+속성 값의 검사 등을 위해 초기화 블록을 사용할 수 있다.
+
+인스턴스가 생성될 때 마다 자동으로 호출된다.  
+```
+    init {
+        require(healthPoints > 0, { "healthPoints는 0보다 커야 합니다." })
+        require(name.isNotBlank(), { "플레이어는 이름이 있어야 합니다." })
+    }
+```  
+#
+속성을 하나 추가하자. 
+
+`val hometown: String`
+
+이렇게만 하면 초기화를 안해서 에러가 발생한다. 
+
+`val hometown = ""`
+
+에러는 없지만 좋은 해결책은 아니다. 함수를 통해 초기값을 지정해보자. 
+```
+var name = _name
+        get() = "${field.capitalize()} of $hometown"
+
+val hometown = selectHometown()
+
+private fun selectHometown() = File("data/towns.txt")
+        .readText()
+        .split("\r\n") // 맥 OS나 리눅스에서는 .split("\n")
+        .shuffled()
+        .first()
+``` 
+name에서 hometown을 이용해 getter를 정의하게 했다.
+
+초기화가 보장은 되므로 컴파일 에러가 생기지 않는다.  
+#
+다른 객체를 참조하는 속성의 경우 선언하는 시점에서 초기화 될 수 없는 경우가 있다. 
+
+생성자가 호출되는 방법이나 시점을 우리가 제어 할 수 없는 경우, 예를 들면 외부 프레임워크에서 초기화 되는 경우가 그렇다.  
+
+안드로이드에서 Activity는 각종 컴퓨넌트 클래스들의 인스턴스를 참조하는 속성을 갖는다. 
+
+애플리케이션이 실행되면 Activity 클래스의 인스턴스가 자동 생성되고 onCreate 함수가 자동 호출된다. 
+
+이때 모든 속성을 초기화 되어야 한다. 
+
+생성 시점에 모든 속성이 초기화 될 수 없는데 이때 지연 초기화를 해야 한다. 
+```
+class Wheel {
+    lateinit var alignment: String
+    ...
+}
+```
+초기화를 안해서 컴파일 에러가 나지 않으므로 조심해서 사용해야 한다. 
+
+초기화 전에 사용되어버리면 UninitializedPropertyAccessException이 발생된다. 
+#
+초기화 지연에는 다른 방법이 있다. 
+lazy initialization이다. 
+
+```
+val hometown by lazy { selectHometown() }
+```
+hometown은 파일에서 읽은 데이터로 초기화 되므로 필요한 시점에서 초기화 되게 해주는게 효울적이다. 
+
+다른코드에서 최초 사용시에 lazy 함스의 람다가 실행되어 초기화 된다. 
+
+또한 한번만 실행 된다. 이후에는 캐시에 저장된 결과가 사용된다. 
+#
+
+
+
+
+
+ 
 
 
 
