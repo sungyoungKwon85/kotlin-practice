@@ -320,6 +320,82 @@ hometown은 파일에서 읽은 데이터로 초기화 되므로 필요한 시�
 또한 한번만 실행 된다. 이후에는 캐시에 저장된 결과가 사용된다. 
 #
 
+## 상속
+```
+open class Room(val name: String) {
+    protected open val dangerLevel = 5
+
+    fun description() = "Room: $name\r\n" + // 맥 OS나 리눅스에서는 "Room: $name\n"
+            "위험 수준: $dangerLevel"
+
+    open fun load() = "아무도 여기에 오지 않았습니다..."
+}
+
+class TownSquare : Room("Town Square") {
+    override val dangerLevel = super.dangerLevel - 3
+    private var bellSound = "댕댕"
+
+    final override fun load() = "당신의 참여를 주민들이 다 함께 환영합니다!\r\n${ringBell()}"
+
+    private fun ringBell() = "당신의 도착을 종탑에서 알립니다. $bellSound"
+}
+```
+Room 클래스가 서브 클래스를 가질 수 있으려면 `open` 키워드가 필요하다. 
+
+또한 overriding 할 수 있으려면 함수에도 `open` 키워드가 필요하다. 
+
+코틀린에서는 속성도 overriding 할 수 있고 `open` 키워드가 필요하다.
+
+만약 TownSqure의 서브 클래스는 생성할 수 있게 하고 load 함수는 overriding 못하게 하려면?
+```
+open class TownSquare : Room("Town Square") {
+    ...
+    final override fun load() ...
+}
+```
+`final` 키워드를 사용할 수 있다.
+#
+타입 검사는 `is` 연산자를 통해 하면 된다. 
+```
+var room = Room("Foyer")
+room is Room // true
+room is TownSquare // false
+
+var townSquare = TownSquare()
+townSquare is Room // true
+townSquare is TownSquare // true
+```
+#
+코틀린에서 최상위 슈퍼 클래스는 `Any` 이다
+```
+fun sth(any: Any) {
+    val isSth = if (any is Player) {
+        any.isBlessed // smart casting!!
+    } else {
+        false
+    }
+}
+```
+#
+Any 클래스는 equals, hashCode, toString을 정의하고 있다. 
+
+Any? null 가능 타입이 있다. 
+
+모든 null 가능 타입은 Any? 의 서브 타입이다. 
+
+모든 null 불가능 타입은 Any 의 서브 타입이다.
+
+Number 는 Number?의 서브 타입이다. 
+
+Any 는 Any? 의 서브 타입이다. 
+#
+
+## 객체
+
+
+
+ 
+
 
 
 
